@@ -1,0 +1,3 @@
+﻿  소스.cpp
+c:\users\r35\desktop\bitexpert\c programming\0107실습\0107실습\소스.cpp(6): warning C4326: 'main'의 반환 형식이 'int'이어야 하는데 'void'입니다.
+  0107실습.vcxproj -> C:\Users\R35\Desktop\BitExpert\C Programming\0107실습\Debug\0107실습.exe
