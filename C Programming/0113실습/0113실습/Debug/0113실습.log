@@ -1,0 +1,4 @@
+﻿  소스1.cpp
+c:\users\r35\source\repos\0113실습\0113실습\소스1.cpp(10): warning C4091: 'typedef ': 변수를 선언하지 않으면 'node' 왼쪽은 무시됩니다.
+MSVCRTD.lib(exe_main.obj) : error LNK2019: _main 외부 기호(참조 위치: "int __cdecl invoke_main(void)" (?invoke_main@@YAHXZ) 함수)에서 확인하지 못했습니다.
+C:\Users\R35\source\repos\0113실습\Debug\0113실습.exe : fatal error LNK1120: 1개의 확인할 수 없는 외부 참조입니다.
