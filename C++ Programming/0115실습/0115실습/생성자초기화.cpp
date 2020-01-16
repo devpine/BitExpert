@@ -17,7 +17,7 @@ public:
 	int getPass() { return pass; }
 	void setPass(int p) { pass = p; }
 
-	Plane() :num(1) {};
+	Plane() :num(0) {};
 	Plane(int n) :num(n){}
 	Plane(int n, string m) : num(n), model(m){}
 	Plane(int n, string m, int p) : num(n), model(m), pass(p){	}
