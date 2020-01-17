@@ -1,61 +1,25 @@
-#pragma warning(disable:4996)
+#include "main.h"
 
-#include<stdio.h>
-#include<stdlib.h>
-#include<string.h>
-#include<ctype.h>
-#include<math.h>
-
-#define MAX 100
-
-typedef enum { lparen, rparen, plus, minus, times, divide, mod, eos, Sin, Cos, Tan, space, operand } precedence;
-
-int isp[] = { 0, 19, 12, 12, 13, 13, 13, 0, 0, 0, 0 };  //스택에 있는 값의 우선순위
-int icp[] = { 20, 19, 12, 12, 13, 13, 13, 0, 20, 20, 20 }; //스택에 들어가는 값의 우선순위
-double stack[MAX]; //스택을 정의
-int top;        //top표인터 정의
-
-
-
-//함수원형/////////////////////////////////////////////////////////////////
-void change_postfix(char*, char*);
-precedence get_token(char*);
-char print_token(precedence);
-void init_stack(void);
-void push(double);
-double pop(void);
-double eval(char* post);
-
-//Main 함수//////////////////////////////////////////////////////////////////
 void main()
 {
-
-	char infix[MAX];
-	char postfix[MAX] = { 0 };  //후위표기법을 저장하는 배열
 	double result;
 	int i;
-	printf("수식을 입력하여주세요 : ");
-	gets_s(infix);
+	cout << "수식을 입력해주세요 :";
+	cin >> expr;
 
-	change_postfix(infix, postfix);
+	postfix(expr, post_expr);
 
 	//출력
-	printf("중위표기법 : %s\n", infix);
 
-	for (i = 0; postfix[i] != '\0'; i++)
+	for (i = 0; post_expr[i] != '\0'; i++)
 	{
-		if (postfix[i] == '$' || postfix[i] == '@' || postfix[i] == '#')
-			printf(")");
-		else
-			printf("%c", postfix[i]);
+		cout << post_expr[i];
 	}
-	printf("\n");
+	cout << endl;
 
-	result = eval(postfix);
-	printf("%s = %f\n", infix, result);
+	result = eval(post_expr);
+	cout << expr<<" = " << result << endl;
 }
-
-
 
 //후위 표기법으로 변환된 수식을 이용하여 값을 계산하는 함수//////
 double eval(char* post)
@@ -82,7 +46,7 @@ double eval(char* post)
 
 		else   //operator이면 switch문 실행
 		{
-			if (!(token >= Sin && token <= space) && !isalpha(*post) && token != lparen)
+			if (!(token >= eos && token <= operand) && !isalpha(*post) && token != lparen)
 				cnt_operator++;
 			switch (token)
 			{
@@ -106,7 +70,7 @@ double eval(char* post)
 
 	if (cnt_operand - cnt_operator != 1)
 	{
-		puts("에러!!!!!!!!!!.   수식이 맞지 않습니다.");
+		cout << "수식 입력 에러" << endl;
 		exit(1);
 	}
 	return pop();
@@ -114,29 +78,29 @@ double eval(char* post)
 
 
 //중위표기법을 후위표기법으로 변환 시키는 함수/////////////
-void change_postfix(char* str, char* postfix)
+void postfix(char* str, char* post_expr)
 {
-	int i = 0, j = 0, flag = 0, count = 0, s_c_t;
+	int i = 0, j = 0, flag = 0, count = 0;
 	precedence token;
 
 	init_stack(); //스택 초기화
 	push(eos);    //우선순위가 가장 낮은 '\0'를 삽입
 	while ((token = get_token(str + i)) != eos) // str이 널값이면 변환 중지
 	{
-		if (token == operand) // operand이면 postfix에 바로 삽입
+		if (token == operand) // operand이면 post_expr에 바로 삽입
 		{
 			if (count && count % 2)
 			{
-				*(postfix + j++) = '-';
+				*(post_expr + j++) = '-';
 				count = 0;
 			}
-			*(postfix + j++) = *(str + i);
+			*(post_expr + j++) = *(str + i);
 			flag = 1;     //operand가 실행 되었다는것을 표시
 		}
 		else if (token == lparen && count % 2)
 
 		{
-			strncat(postfix + j, "0 ", 2);  //operand 뒤에 공백 삽입
+			strncat(post_expr + j, "0 ", 2);  //operand 뒤에 공백 삽입
 			j += 2;
 			push(minus);
 			push(token);
@@ -151,43 +115,36 @@ void change_postfix(char* str, char* postfix)
 		{
 			if (flag) //operand와 구분 시켜 주기위해 공백 삽입, flag가 1이면 operand가 삽입 되었단 말임
 			{
-				*(postfix + j++) = ' ';
+				*(post_expr + j++) = ' ';
 				flag = 0;
 			}
-			if (token == rparen) // token이 ')'이면 '('이 나올때까지 postfix에 삽입
+			if (token == rparen) // token이 ')'이면 '('이 나올때까지 post_expr에 삽입
 			{
-				while ((token = precedence((int)pop())) != lparen && !(token >= Sin && token <= Tan))
+				while ((token = precedence((int)pop())) != lparen)
 				{
-					*(postfix + j++) = ' ';
-					*(postfix + j++) = print_token(token);
-					*(postfix + j++) = ' ';
-				}
-				if (token != lparen)  //sin => $ , cos => @ , tan => # 기호 삽입
-				{
-					*(postfix + j++) = print_token(token);
-					*(postfix + j++) = ' ';
+					*(post_expr + j++) = ' ';
+					*(post_expr + j++) = print_token(token);
+					*(post_expr + j++) = ' ';
 				}
 			}
 
 			else
-			{   // token값이 stack[top]값보다 우선순위가 높을때까지 postfix에 삽입
+			{   // token값이 stack[top]값보다 우선순위가 높을때까지 post_expr에 삽입
 				while (icp[token] <= isp[(int)stack[top]])
 				{
-					*(postfix + j++) = ' ';
-					*(postfix + j++) = print_token(precedence((int)pop()));
-					*(postfix + j++) = ' ';
+					*(post_expr + j++) = ' ';
+					*(post_expr + j++) = print_token(precedence((int)pop()));
+					*(post_expr + j++) = ' ';
 				}
 				push(token); //마지막에 token값을 푸쉬
 			}
 		}
 		i++;
 	}
-
-	*(postfix + j++) = ' ';  //operand와 구분 시켜 주기위해 공백 삽입 
-
-	while ((token = precedence((int)pop())) != eos)   //스택에 남은 값들을 postfix에 삽입
-		*(postfix + j++) = print_token(token);
-	*(postfix + j) = '\0'; //postfix 맨마지막에 null 삽입
+	*(post_expr + j++) = ' ';  //operand와 구분 시켜 주기위해 공백 삽입 
+	while ((token = precedence((int)pop())) != eos)   //스택에 남은 값들을 post_expr에 삽입
+		*(post_expr + j++) = print_token(token);
+	*(post_expr + j) = '\0'; //post_expr 맨마지막에 null 삽입
 }
 
 
@@ -205,9 +162,6 @@ precedence get_token(char* symbol)
 	case '%': return mod;
 	case '\0': return eos;
 	case ' ': return space;
-	case '$': return Sin;
-	case '@': return Cos;
-	case '#': return Tan;
 	default: return operand;
 	}
 }
@@ -222,39 +176,31 @@ char print_token(precedence token)
 	case times: return '*';
 	case divide: return '/';
 	case mod: return '%';
-	case Sin: return '$';
-	case Cos: return '@';
-	case Tan: return '#';
 	default: return '\0';
 	}
 }
 
-//스택 초기화 함수/////////////////////////////////////////////////
 void init_stack(void)
 {
 	top = -1;
 }
 
-//스택에 푸쉬 하는 함수////////////////////////////////////////
-
 void push(double in)
 {
 	if (top >= MAX - 1)
 	{
-		puts("Stack is Full !!!!!!!!!!!");
-		exit(1);
+		cout << "스택이 다 차있습니다." << endl;
+		exit(2);
 	}
 	stack[++top] = in;
 }
-
-//스택에서 팝하는 함수///////////////////////////////////////////
 
 double pop(void)
 {
 	if (top < 0)
 	{
-		puts("Stack is Empty !!!!!!!!!!!");
-		exit(1);
+		cout << "스택이 비어있습니다." << endl;
+		exit(3);
 	}
 	return stack[top--];
 }
